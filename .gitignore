@@ -1,0 +1,7 @@
+out/
+.deps/
+*.o
+.vscode/*
+!.vscode/settings.json
+Thumbs.db
+.DS_Store

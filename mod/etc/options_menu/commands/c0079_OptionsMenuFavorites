@@ -1,0 +1,5 @@
+COMMAND_NAME=FAVORITES_TITLE
+COMMAND_TYPE=EXTERNAL
+RESTART_UI=FALSE
+SUBMENU=TRUE
+COMMAND_STR=usleep 50000 && %options_path%/options --commandPath %options_path%/om-favorites/commands/ --scriptPath %options_path%/om-favorites/scripts/ --title "FAVORITES_TITLE" &
