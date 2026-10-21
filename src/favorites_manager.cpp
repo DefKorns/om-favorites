@@ -463,6 +463,7 @@ int main(int argc, char **argv)
   std::vector<Texture> noteLines = MakeLines(noteText, NoteFontSize, renderer, UiTheme::TextDim);
 
   int markedCount = 0;
+  std::string resultKey;
   Texture summaryCount;
   Texture moreText;
   std::vector<Texture> summaryNames;
@@ -479,7 +480,8 @@ int main(int argc, char **argv)
         {"FAVORITES_STAT_GAMES", std::to_string(state.games.size())},
         {"FAVORITES_STAT_MARKED", std::to_string(markedCount)},
         {"FAVORITES_STAT_FOLDER", GetFavoritesCode(state)},
-        {"FAVORITES_STAT_STATUS", markedCount > MaxSafeFavorites ? Translate("FAVORITES_WARNING")
+        {"FAVORITES_STAT_STATUS", !resultKey.empty()             ? Translate(resultKey)
+                                  : markedCount > MaxSafeFavorites ? Translate("FAVORITES_WARNING")
                                   : markedCount > 0              ? Translate("FAVORITES_READY")
                                                                  : Translate("FAVORITES_EMPTY")}};
 
@@ -643,22 +645,19 @@ int main(int argc, char **argv)
   {
     if (!RunDialog(DrawScreen, "FAVORITES_CLEAR_CONFIRM", {Translate("FAVORITES_CLEAR_NOTE")}, "", true))
       return;
-    ShowBusy(DrawScreen, "FAVORITES_WORKING");
     std::string errorMsg;
     bool ok = RemoveFavorites(state, errorMsg);
     folderExists = FolderExists();
     menuChanged = true;
-    if (ok)
-    {
-      for (auto &g : state.games)
-        g.isFavorite = false;
-      RefreshSummary();
-      RunDialog(DrawScreen, "FAVORITES_CLEAR_SUCCESS", {Translate("FAVORITES_CLEAR_DESC")}, "", false);
-    }
-    else
+    if (!ok)
     {
       RunDialog(DrawScreen, "FAVORITES_FAILED", {errorMsg}, "", false);
+      return;
     }
+    for (auto &g : state.games)
+      g.isFavorite = false;
+    resultKey = "FAVORITES_CLEARED";
+    RefreshSummary();
   };
 
   std::vector<std::string> gameLabels;
@@ -715,6 +714,7 @@ int main(int argc, char **argv)
         int gameIdx = currentId - selectAllRows;
         state.games[gameIdx].isFavorite = !state.games[gameIdx].isFavorite;
       }
+      resultKey.clear();
       RefreshSummary();
     }
     else if (controller.GetButtonStatus(Y))
@@ -723,6 +723,7 @@ int main(int argc, char **argv)
       {
         g.isFavorite = !g.isFavorite;
       }
+      resultKey.clear();
       RefreshSummary();
     }
     else if ((markedCount > 0 || folderExists) && (controller.GetButtonStatus(X) || controller.GetButtonStatus(START)))
@@ -742,7 +743,6 @@ int main(int argc, char **argv)
 
       if (RunDialog(DrawScreen, "FAVORITES_APPLY_CONFIRM", promptLines, "FAVORITES_APPLY_NOTE", true))
       {
-        ShowBusy(DrawScreen, "FAVORITES_WORKING");
         std::string assetsDir = optionsLocation + "favorites_manager/assets";
         std::string errorMsg;
         bool ok = ApplyFavorites(state, assetsDir, errorMsg);
@@ -750,7 +750,8 @@ int main(int argc, char **argv)
         menuChanged = true;
         if (ok)
         {
-          RunDialog(DrawScreen, "FAVORITES_SUCCESS", {Translate("FAVORITES_SAVED_DESC")}, "", false);
+          resultKey = "FAVORITES_SAVED";
+          RefreshStats();
         }
         else
         {
