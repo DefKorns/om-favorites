@@ -13,6 +13,7 @@
 #include "framework/controller.h"
 #include "framework/powerwatch.h"
 #include "framework/draw_helpers.h"
+#include "framework/list_jump.h"
 #include "framework/utf8.h"
 #include "framework/uitheme.h"
 #include "framework/texture.h"
@@ -638,104 +639,6 @@ int main(int argc, char **argv)
     DrawFooterDivider(rightEdge);
   };
 
-  auto JumpLetter = [&](int direction)
-  {
-    if (state.games.empty())
-      return;
-    const int totalRows = static_cast<int>(state.games.size()) + selectAllRows;
-
-    auto GetInitial = [](const std::string &name) -> char
-    {
-      for (char c : name)
-      {
-        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
-          return static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
-        if (c >= '0' && c <= '9')
-          return '#';
-      }
-      return '#';
-    };
-
-    if (direction > 0)
-    {
-      if (currentId < selectAllRows)
-      {
-        currentId = selectAllRows;
-      }
-      else
-      {
-        int curGIdx = currentId - selectAllRows;
-        char curLetter = GetInitial(state.games[curGIdx].name);
-        int targetGIdx = -1;
-        for (size_t i = curGIdx + 1; i < state.games.size(); ++i)
-        {
-          if (GetInitial(state.games[i].name) != curLetter)
-          {
-            targetGIdx = static_cast<int>(i);
-            break;
-          }
-        }
-        if (targetGIdx != -1)
-        {
-          currentId = targetGIdx + selectAllRows;
-        }
-        else
-        {
-          currentId = totalRows - 1;
-        }
-      }
-    }
-    else
-    {
-      if (currentId <= selectAllRows)
-      {
-        currentId = 0;
-      }
-      else
-      {
-        int curGIdx = currentId - selectAllRows;
-        char curLetter = GetInitial(state.games[curGIdx].name);
-
-        int firstOfCurLetter = curGIdx;
-        while (firstOfCurLetter > 0 && GetInitial(state.games[firstOfCurLetter - 1].name) == curLetter)
-        {
-          --firstOfCurLetter;
-        }
-
-        if (curGIdx > firstOfCurLetter)
-        {
-          currentId = firstOfCurLetter + selectAllRows;
-        }
-        else
-        {
-          if (firstOfCurLetter == 0)
-          {
-            currentId = 0;
-          }
-          else
-          {
-            char prevLetter = GetInitial(state.games[firstOfCurLetter - 1].name);
-            int prevStart = firstOfCurLetter - 1;
-            while (prevStart > 0 && GetInitial(state.games[prevStart - 1].name) == prevLetter)
-            {
-              --prevStart;
-            }
-            currentId = prevStart + selectAllRows;
-          }
-        }
-      }
-    }
-
-    if (currentId == 0)
-    {
-      listOffset = 0;
-    }
-    else
-    {
-      listOffset = std::min(std::max(0, totalRows - displayCount), currentId);
-    }
-  };
-
   auto RunClear = [&]()
   {
     if (!RunDialog(DrawScreen, "FAVORITES_CLEAR_CONFIRM", {Translate("FAVORITES_CLEAR_NOTE")}, "", true))
@@ -758,7 +661,10 @@ int main(int argc, char **argv)
     }
   };
 
-  unsigned int lastLetterJumpTime = 0;
+  std::vector<std::string> gameLabels;
+  for (const auto &game : state.games)
+    gameLabels.push_back(game.name);
+  ListJumpInput jumpInput;
 
   for (;;)
   {
@@ -776,7 +682,7 @@ int main(int argc, char **argv)
       return ExitLeaveMenu;
 
     const int totalRows = static_cast<int>(state.games.size()) + selectAllRows;
-    unsigned int nowMs = SDL_GetTicks();
+    const ListJump jump = jumpInput.Poll(controller, SDL_GetTicks());
 
     if (controller.HeldRepeat(UP) && currentId > 0)
     {
@@ -790,48 +696,11 @@ int main(int argc, char **argv)
       if (currentId >= listOffset + displayCount)
         listOffset = currentId - displayCount + 1;
     }
-    else if (controller.HeldRepeat(L))
+    else if (jump != ListJump::None)
     {
-      JumpLetter(-1);
-    }
-    else if (controller.HeldRepeat(R))
-    {
-      JumpLetter(1);
-    }
-    else if (controller.PeekButtonStatus(LEFT))
-    {
-      unsigned int heldMs = controller.HeldMillis(LEFT);
-      if (heldMs >= 450)
-      {
-        if (nowMs - lastLetterJumpTime >= 200)
-        {
-          lastLetterJumpTime = nowMs;
-          JumpLetter(-1);
-        }
-      }
-      else if (controller.HeldRepeat(LEFT))
-      {
-        currentId = std::max(0, currentId - displayCount);
-        listOffset = std::max(0, listOffset - displayCount);
-      }
-    }
-    else if (controller.PeekButtonStatus(RIGHT))
-    {
-      unsigned int heldMs = controller.HeldMillis(RIGHT);
-      if (heldMs >= 450)
-      {
-        if (nowMs - lastLetterJumpTime >= 200)
-        {
-          lastLetterJumpTime = nowMs;
-          JumpLetter(1);
-        }
-      }
-      else if (controller.HeldRepeat(RIGHT))
-      {
-        currentId = std::min(totalRows - 1, currentId + displayCount);
-        if (currentId >= listOffset + displayCount)
-          listOffset = std::min(std::max(0, totalRows - displayCount), currentId);
-      }
+      int windowRow = currentId - listOffset;
+      ApplyListJump(jump, gameLabels, selectAllRows, displayCount, listOffset, windowRow);
+      currentId = listOffset + windowRow;
     }
     else if (controller.GetButtonStatus(A))
     {

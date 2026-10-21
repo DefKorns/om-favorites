@@ -33,7 +33,8 @@ OM_SOURCES = vendor/OptionsMenu/src/localization.cpp \
              vendor/OptionsMenu/src/framework/draw_helpers.cpp \
              vendor/OptionsMenu/src/framework/utf8.cpp \
              vendor/OptionsMenu/src/framework/font8x8_lookup.cpp \
-             vendor/OptionsMenu/src/framework/uitheme.cpp
+             vendor/OptionsMenu/src/framework/uitheme.cpp \
+             vendor/OptionsMenu/src/framework/list_jump.cpp
 
 APP_SOURCES = src/favorites_manager.cpp src/favorites_core.cpp
 
