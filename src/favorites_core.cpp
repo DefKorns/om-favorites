@@ -158,16 +158,12 @@ namespace
 
 std::string GetFavoritesCode(const FavoritesState &state)
 {
-  if (!state.favCode.empty())
-    return state.favCode;
-  return "CLV-S-FAVORITES";
+  return state.favCode;
 }
 
 std::string GetFavoritesDirName(const FavoritesState &state)
 {
-  if (!state.favSuffix.empty())
-    return state.favSuffix;
-  return "favorites";
+  return state.favSuffix;
 }
 
 namespace
@@ -293,7 +289,7 @@ namespace
     std::ofstream out(primaryPath);
     if (!out)
       return false;
-    out << "# SNESC Favorites persistent list - do not edit manually\n";
+    out << "# Favorites list - do not edit manually\n";
     for (const auto &code : codes)
     {
       out << code << "\n";
@@ -378,7 +374,6 @@ bool ScanFavoritesState(FavoritesState &state, const std::string &overrideRoot)
   state.games.clear();
   state.favSuffix = "favorites";
   state.favCode = "CLV-S-FAVORITES";
-  state.favoriteCount = 0;
 
   state.gamesRoot = FindGamesRoot(overrideRoot);
   if (state.gamesRoot.empty())
@@ -459,7 +454,6 @@ bool ScanFavoritesState(FavoritesState &state, const std::string &overrideRoot)
             if (existingFavCodes.find(game.code) != existingFavCodes.end())
             {
               game.isFavorite = true;
-              state.favoriteCount++;
             }
             state.games.push_back(game);
           }
@@ -589,7 +583,6 @@ bool ApplyFavorites(FavoritesState &state, const std::string &assetsDir, std::st
     }
   }
 
-  state.favoriteCount = 0;
   std::set<std::string> wantedCodes;
   int failedShortcuts = 0;
   for (const auto &game : state.games)
@@ -597,7 +590,6 @@ bool ApplyFavorites(FavoritesState &state, const std::string &assetsDir, std::st
     if (game.isFavorite)
     {
       wantedCodes.insert(game.code);
-      state.favoriteCount++;
       std::string stubDir = favDir + "/" + game.code;
       if (MkdirP(stubDir) != 0 || !CreateDesktopShortcut(game, stubDir) || TouchFile(stubDir + "/.sht") != 0)
         ++failedShortcuts;
@@ -682,6 +674,5 @@ bool RemoveFavorites(FavoritesState &state, std::string &errorMessage)
   {
     game.isFavorite = false;
   }
-  state.favoriteCount = 0;
   return true;
 }

@@ -29,7 +29,6 @@ struct FavoritesState
   std::string favSuffix = "favorites";
   std::string favCode = "CLV-S-FAVORITES";
   std::vector<GameInfo> games;
-  int favoriteCount = 0;
 };
 
 std::string GetFavoritesCode(const FavoritesState &state);

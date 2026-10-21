@@ -28,8 +28,6 @@ echo "Date: $(date)"
 echo "Options path: $options_path"
 echo "OM_BACK_STACK: $OM_BACK_STACK"
 
-chmod +x "$options_path/favorites_manager/favorites_manager" 2>/dev/null
-
 games_args=""
 if [ -f /etc/preinit ]; then
   source /etc/preinit

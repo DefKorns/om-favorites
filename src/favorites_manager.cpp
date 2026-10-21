@@ -32,7 +32,7 @@
 #include <vector>
 
 #ifndef MOD_VERSION
-#define MOD_VERSION "v1.1.0"
+#define MOD_VERSION "dev"
 #endif
 
 namespace
@@ -141,7 +141,7 @@ int main(int argc, char **argv)
   {
     if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
     {
-      std::cout << "SNESC Favorites Manager " << MOD_VERSION << "\n"
+      std::cout << "Favorites Manager " << MOD_VERSION << "\n"
                 << "Usage: " << argv[0] << " [options]\n"
                 << "  --optionsPath <path>   Set OptionsMenu directory\n"
                 << "  --gamesPath <path>     Set games directory\n"
@@ -324,6 +324,7 @@ int main(int argc, char **argv)
     }
   };
 
+  bool quitRequested = false;
   auto RunDialog = [&](const std::function<void()> &drawUnder, const std::string &titleKey, const std::vector<std::string> &bodyLines,
                        const std::string &noteKey, bool confirm) -> bool
   {
@@ -355,9 +356,12 @@ int main(int argc, char **argv)
       SDL_Event e;
       while (SDL_PollEvent(&e))
         if (e.type == SDL_QUIT)
+        {
+          quitRequested = true;
           return false;
+        }
       controller.Update();
-      if (sdl_context.powerwatch->buttonPress() || controller.GetButtonStatus(B))
+      if (sdl_context.powerwatch->buttonPress() || (confirm && controller.GetButtonStatus(B)))
       {
         DropPendingInput();
         return false;
@@ -436,7 +440,7 @@ int main(int argc, char **argv)
       DrawChrome();
     };
     RunDialog(DrawEmptyScreen, "FAVORITES_NO_GAMES_FOUND", {Translate("FAVORITES_CHECK_USB_NOTE")}, "", false);
-    return ExitBack;
+    return quitRequested ? ExitLeaveMenu : ExitBack;
   }
 
   int currentId = 0;
@@ -764,6 +768,8 @@ int main(int argc, char **argv)
       if (e.type == SDL_QUIT)
         return ExitLeaveMenu;
     }
+    if (quitRequested)
+      return ExitLeaveMenu;
 
     controller.Update();
     if (sdl_context.powerwatch->buttonPress())
