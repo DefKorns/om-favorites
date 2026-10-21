@@ -29,6 +29,7 @@
 #include <cstring>
 #include <fstream>
 #include <functional>
+#include <map>
 #include <iostream>
 #include <string>
 #include <sys/stat.h>
@@ -60,6 +61,8 @@ namespace
   const int PanelFontSize = 16;
   const int PanelHeaderFontSize = 18;
   const int NoteFontSize = 15;
+  const int TagFontSize = 14;
+  const int TagGap = 12;
 
   void DrawDot(SDL_Renderer *renderer, int x, int centerY)
   {
@@ -234,12 +237,19 @@ int main(int argc, char **argv)
   int listOffset = 0;
   const int selectAllRows = 1;
 
+  std::map<std::string, int> nameCount;
+  for (const auto &game : state.games)
+    ++nameCount[game.name];
+  std::vector<std::string> shownNames;
   std::vector<Texture> gameTextures;
-  gameTextures.reserve(state.games.size());
+  std::vector<Texture> tagTextures;
   for (const auto &game : state.games)
   {
-    std::string label = TruncateToWidth(game.name, ListFontSize, RowTextMaxW);
-    gameTextures.emplace_back(label, ListFontSize, renderer, UiTheme::RowTextX, 0, false, ToAbgr(White), true);
+    const bool repeated = nameCount[game.name] > 1;
+    shownNames.push_back(repeated ? game.name + " (" + game.code + ")" : game.name);
+    tagTextures.push_back(repeated ? Texture(game.code, TagFontSize, renderer, 0, 0, false, ToAbgr(UiTheme::TextDim), true) : Texture());
+    const int textMaxW = repeated ? RowTextMaxW - tagTextures.back().rect.w - TagGap : RowTextMaxW;
+    gameTextures.emplace_back(TruncateToWidth(game.name, ListFontSize, textMaxW), ListFontSize, renderer, UiTheme::RowTextX, 0, false, ToAbgr(White), true);
   }
 
   Texture selectAllText(Translate("FAVORITES_SELECT_ALL"), ListFontSize, renderer, UiTheme::RowTextX, 0, false, ToAbgr(White), true);
@@ -290,13 +300,13 @@ int main(int argc, char **argv)
 
     summaryNames.clear();
     int count = 0;
-    for (const auto &game : state.games)
+    for (size_t i = 0; i < state.games.size(); ++i)
     {
-      if (!game.isFavorite)
+      if (!state.games[i].isFavorite)
         continue;
       if (count < SummaryMaxRows - 1 || (count == SummaryMaxRows - 1 && markedCount == SummaryMaxRows))
       {
-        std::string itemText = TruncateToWidth(game.name, PanelFontSize, PanelInnerW - BulletTextGap);
+        std::string itemText = TruncateToWidth(shownNames[i], PanelFontSize, PanelInnerW - BulletTextGap);
         summaryNames.emplace_back(itemText, PanelFontSize, renderer, PanelInnerX + BulletTextGap, 0, false, ToAbgr(UiTheme::Text), true);
       }
       count++;
@@ -352,6 +362,13 @@ int main(int argc, char **argv)
         const int gameIndex = row - selectAllRows;
         gameTextures[gameIndex].rect.y = textY;
         gameTextures[gameIndex].Draw(renderer);
+        Texture &tag = tagTextures[gameIndex];
+        if (tag.texture)
+        {
+          tag.rect.x = CheckboxX - TagGap - tag.rect.w;
+          tag.rect.y = rowRect.y + (RowBoxH - tag.rect.h) / 2;
+          tag.Draw(renderer);
+        }
 
         Texture &cb = state.games[gameIndex].isFavorite ? checkboxOn : checkboxOff;
         cb.rect.x = CheckboxX;
