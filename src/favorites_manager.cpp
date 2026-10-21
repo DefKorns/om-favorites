@@ -123,13 +123,6 @@ namespace
   {
     DrawRoundedFillRect(renderer, {x, centerY - 4, 8, 8}, UiTheme::Accent, 4);
   }
-
-  void SafeSetColorMod(SDL_Texture *tex, Color color)
-  {
-    if (tex)
-      SetColorMod(tex, color);
-  }
-
 }
 
 int main(int argc, char **argv)
@@ -217,9 +210,9 @@ int main(int argc, char **argv)
 
   const int RowBoxH = UiTheme::RowPitch - 6;
   Texture checkboxOn(optionsLocation + UiTheme::AssetCheckboxOn, renderer);
-  SafeSetColorMod(checkboxOn.texture.get(), UiTheme::Accent);
+  SetColorMod(checkboxOn.texture.get(), UiTheme::Accent);
   Texture checkboxOff(optionsLocation + UiTheme::AssetCheckboxOff, renderer);
-  SafeSetColorMod(checkboxOff.texture.get(), UiTheme::CheckboxOff);
+  SetColorMod(checkboxOff.texture.get(), UiTheme::CheckboxOff);
 
   const int CheckboxSize = 20;
   const int CheckboxX = ControlRightX - CheckboxSize;
@@ -227,7 +220,7 @@ int main(int argc, char **argv)
   const int displayCount = std::max(1, (UiTheme::FooterDividerY - UiTheme::ListBottomMargin - UiTheme::RowFirstY) / UiTheme::RowPitch);
 
   Texture scrollUp(optionsLocation + UiTheme::AssetChevronUp, renderer, UiTheme::ScrollX, UiTheme::ScrollUpY);
-  SafeSetColorMod(scrollUp.texture.get(), UiTheme::ScrollArrow);
+  SetColorMod(scrollUp.texture.get(), UiTheme::ScrollArrow);
   Texture scrollDown = scrollUp;
   scrollDown.rect.y = UiTheme::ScrollDownY;
 
