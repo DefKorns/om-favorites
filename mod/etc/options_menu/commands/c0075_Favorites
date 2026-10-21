@@ -1,0 +1,7 @@
+COMMAND_NAME=FAVORITES_MANAGER
+COMMAND_TYPE=EXTERNAL
+RESTART_UI=FALSE
+SUBMENU=TRUE
+USB_ONLY=TRUE
+COMMAND_STR=sh %options_path%/favorites_manager/launch_favorites_manager.sh %options_path% &
+PREVIEW_IMAGE=/etc/options_menu/images/preview_favorites.png

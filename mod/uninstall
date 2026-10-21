@@ -1,7 +1,7 @@
 #!/bin/sh
 # shellcheck disable=SC2154
 #
-#  Copyright (C) 2026 DefKorns (https://defkorns.github.io/LICENSE)
+#  Copyright (c) 2026 DefKorns (https://defkorns.github.io/LICENSE)
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -17,5 +17,9 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-rm -f "$rootfs/etc/options_menu/commands/c0079_OptionsMenuFavorites"
-rm -rf "$rootfs/etc/options_menu/om-favorites"
+games_root="$(findGameStorage 2>/dev/null)"
+games_root="${games_root%/000}"
+if [ -n "$games_root" ]; then
+  rm -rf "$games_root/000/CLV-S-FAVORITES" "$games_root/CLV-S-FAVORITES" "$games_root/favorites"
+  rm -f "$games_root/.favorites"
+fi
