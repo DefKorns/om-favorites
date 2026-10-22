@@ -44,7 +44,7 @@ echo "favorites_manager finished with code: $EXIT_CODE"
 
 if [ $EXIT_CODE -eq 2 ]; then
   echo "Favorites changed, reloading the home menu..."
-  omSplash FAVORITES_RELOADING
+  omLoading FAVORITES_RELOADING
   omReloadMenuLater
   exit 0
 fi
