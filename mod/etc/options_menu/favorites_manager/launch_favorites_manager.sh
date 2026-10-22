@@ -17,7 +17,6 @@
 #
 # favorites_manager exit: 0 = back to opening menu, 2 = favorites changed, else leave
 #
-# shellcheck source=/dev/null
 options_path="${1%/}"
 [ -z "$options_path" ] && options_path="/etc/options_menu"
 
@@ -28,16 +27,14 @@ echo "Date: $(date)"
 echo "Options path: $options_path"
 echo "OM_BACK_STACK: $OM_BACK_STACK"
 
+# shellcheck source=/dev/null
+source "$options_path/scripts/om_functions"
+
 games_args=""
-if [ -f /etc/preinit ]; then
-  source /etc/preinit
-  script_init
-  storage="$(findGameStorage 2>/dev/null)"
-  if [ -n "$storage" ]; then
-    games_root="${storage%/000}"
-    echo "Resolved games root via findGameStorage: $games_root"
-    games_args="--gamesPath $games_root"
-  fi
+if [ -n "$game_storage" ]; then
+  games_root="${game_storage%/000}"
+  echo "Resolved games root via findGameStorage: $games_root"
+  games_args="--gamesPath $games_root"
 fi
 
 echo "Launching: $options_path/favorites_manager/favorites_manager $games_args $options_path"
@@ -45,24 +42,10 @@ echo "Launching: $options_path/favorites_manager/favorites_manager $games_args $
 EXIT_CODE=$?
 echo "favorites_manager finished with code: $EXIT_CODE"
 
-# chmenu refuses the folder already shown, and uistop would kill this script
-# (it inherits options' /dev/fb0): remote-exec runs the reload instead
 if [ $EXIT_CODE -eq 2 ]; then
   echo "Favorites changed, reloading the home menu..."
-  "$options_path/scripts/gen_splash" /tmp/favorites_splash.png FAVORITES_RELOADING && decodepng /tmp/favorites_splash.png >/dev/fb0
-  menu_state="/var/saves/$modname/menu"
-  current_menu="000"
-  [ -f "$menu_state" ] && current_menu="$(cat "$menu_state")"
-  cat > /var/exec.flag.tmp <<EOF
-source /etc/preinit
-script_init
-rm -f /tmp/options.flag
-uistop
-uiresume
-echo reload > "$menu_state"
-/bin/chmenu "$current_menu" || /bin/chmenu 000 || { echo "$current_menu" > "$menu_state"; uistart; }
-EOF
-  mv /var/exec.flag.tmp /var/exec.flag
+  omSplash FAVORITES_RELOADING
+  omReloadMenuLater
   exit 0
 fi
 
