@@ -1,6 +1,6 @@
 # Options Menu - Options Menu Favorites
 
-**Requires [my Options Menu fork](https://github.com/DefKorns/OptionsMenu/releases) as a base.**
+**Requires [my Options Menu fork](https://github.com/DefKorns/OptionsMenu/releases) v2.1.0 or newer as a base.**
 
 ## What is it?
 
