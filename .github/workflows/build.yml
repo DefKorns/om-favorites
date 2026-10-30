@@ -9,7 +9,7 @@ on:
 jobs:
   hmod:
     # Keep in sync with the vendor/hmod-build submodule tag.
-    uses: DefKorns/hmod-build/.github/workflows/hmod.yml@v1.7.0
+    uses: DefKorns/hmod-build/.github/workflows/hmod.yml@v1.7.1
     with:
       release-name: Options Menu Favorites
       docker: true
