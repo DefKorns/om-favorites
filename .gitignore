@@ -1,6 +1,7 @@
 out/
 .deps/
 *.o
+mod/etc/options_menu/favorites_manager/favorites_manager
 .vscode/*
 !.vscode/settings.json
 Thumbs.db
